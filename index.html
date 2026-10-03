@@ -150,6 +150,8 @@
 
   <dialog id="paymentDialog" class="modal"><form id="paymentForm" method="dialog"><input type="hidden" id="paymentSaleId"/><h2>Registrar abono</h2><p id="paymentPendingLabel" class="muted"></p><label>Monto<input id="paymentAmount" type="number" min="0.01" step="0.01" required/></label><label>Forma<select id="paymentMethod"><option value="cash">Efectivo</option><option value="transfer">Transferencia</option><option value="other">Otro</option></select></label><div class="modal-actions"><button type="button" class="secondary" data-close="paymentDialog">Cancelar</button><button class="primary" type="submit">Guardar abono</button></div></form></dialog>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
