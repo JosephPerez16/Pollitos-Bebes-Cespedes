@@ -1,0 +1,13 @@
+{
+  "name":"Pollitos Bebés Céspedes 069",
+  "short_name":"Pollitos Bebés",
+  "description":"Control de ventas, clientes, pendientes y caja.",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#fffaf0",
+  "theme_color":"#f59e0b",
+  "icons":[
+    {"src":"assets/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"assets/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}

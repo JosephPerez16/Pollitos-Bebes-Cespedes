@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f59e0b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Pollitos Bebés" />
+  <title>Pollitos Bebés Céspedes 069</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="is-loading">
+  <div id="appSplash" class="app-splash" aria-hidden="true">
+    <div class="splash-glow splash-glow-one"></div>
+    <div class="splash-glow splash-glow-two"></div>
+    <div class="splash-content">
+      <div class="splash-logo-wrap"><img src="assets/logo.png" class="splash-logo" alt="Pollitos Bebés Céspedes" /></div>
+      <div class="splash-copy"><strong>Pollitos Bebés</strong><span>Céspedes 069</span></div>
+      <div class="splash-loader"><i></i><i></i><i></i></div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <header class="topbar">
+    <div class="brand"><img src="assets/logo.png" class="brand-logo" alt="Logo"/><div><strong>Pollitos Bebés</strong><span>Céspedes 069</span></div></div>
+    <button class="icon-btn" id="installBtn" hidden>＋</button>
+  </header>
+
+  <main class="app-shell">
+    <section id="view-dashboard" class="view active">
+      <div class="hero-card">
+        <div><span class="eyebrow">Ventas de hoy</span><h1 id="todaySales">RD$0.00</h1><p><span id="todayUnits">0</span> pollitos vendidos</p></div>
+        <button class="primary round" data-go="sale">+ Venta</button>
+      </div>
+      <div class="stats-grid">
+        <article class="stat-card"><span>💵 Efectivo registrado</span><strong id="cashOnHand">RD$0.00</strong><small>por denominaciones</small></article>
+        <article class="stat-card"><span>🐥 Inventario total</span><strong id="stockTotal">0</strong><small>pollitos disponibles</small></article>
+        <article class="stat-card warning"><span>⏳ Por cobrar</span><strong id="pendingTotal">RD$0.00</strong><small>clientes pendientes</small></article>
+        <article class="stat-card"><span>📆 Ventas del mes</span><strong id="monthSales">RD$0.00</strong><small id="monthUnits">0 unidades</small></article>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head"><div><span class="eyebrow">Inventario</span><h2>Disponibilidad</h2></div><button class="text-btn" data-go="inventory">Administrar</button></div>
+        <div id="dashboardStock" class="list-stack compact"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><span class="eyebrow">Efectivo</span><h2>Dinero disponible</h2></div><button class="text-btn" data-go="money">Ver dinero</button></div>
+        <div class="cash-row"><span>Total por denominaciones</span><strong id="cashOnHand2">RD$0.00</strong></div>
+        <p class="muted">Este total se calcula con las cantidades de billetes y monedas que registres.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><span class="eyebrow">Actividad</span><h2>Últimas ventas</h2></div><button class="text-btn" data-go="history">Ver todas</button></div>
+        <div id="recentSales" class="list-stack empty-state">Todavía no hay ventas.</div>
+      </section>
+    </section>
+
+    <section id="view-sale" class="view">
+      <div class="section-title"><div><span class="eyebrow">Registro rápido</span><h1>Nueva venta</h1></div></div>
+      <form id="saleForm" class="panel form-card">
+        <input type="hidden" id="saleId" />
+        <label>Cliente<select id="saleCustomer"><option value="">Venta sin cliente</option></select></label>
+        <div class="inline-action"><button type="button" class="secondary" id="quickClientBtn">+ Nuevo cliente</button></div>
+        <label>Tipo de pollito<select id="saleProduct" required></select></label>
+        <div class="stock-hint">Disponible: <strong id="saleStockHint">0</strong></div>
+        <div class="two-cols"><label>Cantidad<input id="saleQty" type="number" min="1" step="1" inputmode="numeric" value="1" required /></label><label>Precio unitario<input id="salePrice" type="number" min="0" step="0.01" inputmode="decimal" required /></label></div>
+        <div class="total-preview"><span>Total</span><strong id="saleTotalPreview">RD$0.00</strong></div>
+        <div class="two-cols"><label>Monto recibido<input id="salePaid" type="number" min="0" step="0.01" inputmode="decimal" value="0" required /></label><label>Forma de pago<select id="salePayment"><option value="cash">Efectivo</option><option value="transfer">Transferencia</option><option value="other">Otro</option></select></label></div>
+        <section id="saleCashSection" class="cash-sale-panel hidden">
+          <div class="cash-sale-head"><div><span class="eyebrow">Efectivo recibido</span><h3>¿Cómo recibiste el dinero?</h3></div><button type="button" class="text-btn" id="clearSaleCashBtn">Limpiar</button></div>
+          <p class="section-copy">Indica la cantidad de cada billete o moneda. Al guardar la venta se sumará automáticamente a <strong>Mi dinero</strong>.</p>
+          <div id="saleCashGrid" class="denomination-grid sale-denomination-grid"></div>
+          <div class="cash-sale-summary"><span>Registrado <strong id="saleCashCounted">RD$0.00</strong></span><span>Debe coincidir con <strong id="saleCashExpected">RD$0.00</strong></span></div>
+          <div id="saleCashStatus" class="cash-sale-status">Agrega las denominaciones recibidas.</div>
+        </section>
+        <label>Nota<input id="saleNote" type="text" maxlength="120" placeholder="Opcional" /></label>
+        <button class="primary full" type="submit">Guardar venta</button>
+      </form>
+    </section>
+
+    <section id="view-history" class="view">
+      <div class="section-title"><div><span class="eyebrow">Ventas</span><h1>Historial</h1></div></div>
+      <div class="panel filters"><input id="historySearch" type="search" placeholder="Buscar cliente o tipo..."/><select id="historyFilter"><option value="all">Todas</option><option value="pending">Pendientes</option><option value="paid">Pagadas</option></select></div>
+      <div id="salesHistory" class="list-stack"></div>
+    </section>
+
+    <section id="view-inventory" class="view">
+      <div class="section-title"><div><span class="eyebrow">Inventario</span><h1>Pollitos disponibles</h1><p class="section-copy">Consulta y ajusta las existencias de forma rápida.</p></div><button class="primary small" id="addStockBtn">+ Entrada</button></div>
+      <div class="stats-grid two"><article class="stat-card"><span>Total disponible</span><strong id="inventoryTotal">0</strong></article><article class="stat-card"><span>Valor estimado</span><strong id="inventoryValue">RD$0.00</strong></article></div>
+      <section class="panel"><div class="panel-head"><div><span class="eyebrow">Existencias</span><h2>Por tipo</h2></div></div><div id="inventoryList" class="list-stack"></div></section>
+      <section class="panel"><div class="panel-head"><div><span class="eyebrow">Movimientos</span><h2>Últimas entradas</h2></div></div><div id="stockMovementsList" class="list-stack compact"></div></section>
+    </section>
+
+    <section id="view-money" class="view">
+      <div class="section-title"><div><span class="eyebrow">Mi dinero</span><h1>Control de efectivo</h1><p class="section-copy">Cuenta tu dinero por denominaciones y conoce el total al instante.</p></div><button class="secondary small" id="resetDenomsBtn">Limpiar</button></div>
+      <div class="money-total-card"><span>Efectivo total</span><strong id="moneyTotal">RD$0.00</strong><small>El total cambia automáticamente al editar cantidades.</small></div>
+      <div class="money-summary"><article><span>Billetes</span><strong id="billsTotal">RD$0.00</strong></article><article><span>Monedas</span><strong id="coinsTotal">RD$0.00</strong></article></div>
+      <section class="panel money-panel"><div class="panel-head"><div><span class="eyebrow">Billetes</span><h2>Cuenta tus billetes</h2></div></div><div id="billsGrid" class="denomination-grid"></div></section>
+      <section class="panel money-panel"><div class="panel-head"><div><span class="eyebrow">Monedas</span><h2>Cuenta tus monedas</h2></div></div><div id="coinsGrid" class="denomination-grid"></div></section>
+      <section class="panel"><span class="eyebrow">Resumen</span><h2>Composición del efectivo</h2><div id="moneyBreakdown" class="list-stack compact"></div></section>
+    </section>
+
+    <section id="view-clients" class="view">
+      <div class="section-title"><div><span class="eyebrow">Clientes</span><h1>Mis clientes</h1><p class="section-copy">Solo nombre y teléfono. Simple y rápido.</p></div><button class="primary small" id="addClientBtn">+ Cliente</button></div>
+      <div class="panel search-panel"><input id="clientSearch" type="search" placeholder="Buscar por nombre o teléfono..." /></div>
+      <div id="clientsList" class="list-stack"></div>
+    </section>
+
+    <section id="view-reports" class="view">
+      <div class="section-title"><div><span class="eyebrow">Reportes</span><h1>Ventas y cuentas</h1></div></div>
+      <section class="panel report-filters">
+        <label>Periodo<select id="reportPeriod"><option value="today">Hoy</option><option value="week">Esta semana</option><option value="month" selected>Este mes</option><option value="custom">Personalizado</option></select></label>
+        <div id="customDates" class="two-cols hidden"><label>Desde<input id="reportFrom" type="date"/></label><label>Hasta<input id="reportTo" type="date"/></label></div>
+      </section>
+      <div class="stats-grid"><article class="stat-card"><span>Ventas</span><strong id="reportSales">RD$0.00</strong></article><article class="stat-card"><span>Unidades</span><strong id="reportUnits">0</strong></article><article class="stat-card"><span>Cobrado</span><strong id="reportPaid">RD$0.00</strong></article><article class="stat-card warning"><span>Pendiente</span><strong id="reportPending">RD$0.00</strong></article></div>
+      <div class="export-grid"><button class="primary" id="exportPdfBtn">Exportar PDF</button></div>
+      <section class="panel"><div class="panel-head"><div><span class="eyebrow">Detalle</span><h2>Ventas del periodo</h2></div></div><div id="reportSalesList" class="table-wrap"></div></section>
+      <section class="panel"><div class="panel-head"><div><span class="eyebrow">Clientes</span><h2>Resumen por cliente</h2></div></div><div id="reportClientsList" class="table-wrap"></div></section>
+    </section>
+
+    <section id="view-settings" class="view">
+      <div class="section-title"><div><span class="eyebrow">Configuración</span><h1>Productos y respaldo</h1></div></div>
+      <section class="panel"><div class="panel-head"><div><span class="eyebrow">Pollitos</span><h2>Tipos y precios</h2></div><button class="primary small" id="addProductBtn">+ Tipo</button></div><div id="productsList" class="list-stack compact"></div></section>
+      <section class="panel"><span class="eyebrow">Seguridad de datos</span><h2>Respaldo local</h2><p class="muted">Los datos se guardan en este teléfono. Exporta una copia periódicamente.</p><div class="button-stack"><button class="secondary full" id="backupBtn">Exportar respaldo JSON</button><label class="secondary full file-label">Importar respaldo<input id="restoreInput" type="file" accept="application/json" hidden /></label></div></section>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="dashboard"><span>⌂</span><small>Inicio</small></button>
+    <button class="nav-item" data-view="sale"><span>＋</span><small>Venta</small></button>
+    <button class="nav-item" data-view="inventory"><span>🐥</span><small>Inventario</small></button>
+    <button class="nav-item" data-view="money"><span>💵</span><small>Dinero</small></button>
+    <button class="nav-item" data-view="reports"><span>▤</span><small>Reportes</small></button>
+  </nav>
+
+  <div class="more-nav"><button data-go="clients">Clientes</button><button data-go="history">Historial</button><button data-go="settings">Ajustes</button></div>
+
+  <dialog id="clientDialog" class="modal"><form id="clientForm" method="dialog"><input type="hidden" id="clientId"/><span class="eyebrow">Cliente</span><h2 id="clientDialogTitle">Nuevo cliente</h2><label>Nombre<input id="clientName" required maxlength="80" placeholder="Nombre del cliente"/></label><label>Teléfono<input id="clientPhone" inputmode="tel" maxlength="20" placeholder="809-000-0000"/></label><div class="modal-actions"><button type="button" class="secondary" data-close="clientDialog">Cancelar</button><button class="primary" type="submit">Guardar</button></div></form></dialog>
+
+  <dialog id="productDialog" class="modal"><form id="productForm" method="dialog"><input type="hidden" id="productId"/><h2>Tipo de pollito</h2><label>Nombre<input id="productName" required maxlength="50"/></label><label>Precio por unidad<input id="productPrice" type="number" min="0" step="0.01" required/></label><div class="modal-actions"><button type="button" class="secondary" data-close="productDialog">Cancelar</button><button class="primary" type="submit">Guardar</button></div></form></dialog>
+
+  <dialog id="stockDialog" class="modal"><form id="stockForm" method="dialog"><span class="eyebrow">Inventario</span><h2>Agregar pollitos</h2><label>Tipo de pollito<select id="stockProduct" required></select></label><label>Cantidad que entra<input id="stockQty" type="number" min="1" step="1" inputmode="numeric" required/></label><label>Nota<input id="stockNote" maxlength="120" placeholder="Opcional"/></label><div class="modal-actions"><button type="button" class="secondary" data-close="stockDialog">Cancelar</button><button class="primary" type="submit">Agregar</button></div></form></dialog>
+  <dialog id="stockEditDialog" class="modal"><form id="stockEditForm" method="dialog"><input type="hidden" id="stockEditProductId"/><span class="eyebrow">Ajuste directo</span><h2>Editar cantidad disponible</h2><p class="muted" id="stockEditProductName"></p><label>Cantidad actual<input id="stockEditQty" type="number" min="0" step="1" inputmode="numeric" required/></label><p class="muted">Escribe la cantidad real que tienes. El sistema guardará el ajuste en el historial.</p><div class="modal-actions"><button type="button" class="secondary" data-close="stockEditDialog">Cancelar</button><button class="primary" type="submit">Guardar cantidad</button></div></form></dialog>
+
+  <dialog id="paymentDialog" class="modal"><form id="paymentForm" method="dialog"><input type="hidden" id="paymentSaleId"/><h2>Registrar abono</h2><p id="paymentPendingLabel" class="muted"></p><label>Monto<input id="paymentAmount" type="number" min="0.01" step="0.01" required/></label><label>Forma<select id="paymentMethod"><option value="cash">Efectivo</option><option value="transfer">Transferencia</option><option value="other">Otro</option></select></label><div class="modal-actions"><button type="button" class="secondary" data-close="paymentDialog">Cancelar</button><button class="primary" type="submit">Guardar abono</button></div></form></dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
