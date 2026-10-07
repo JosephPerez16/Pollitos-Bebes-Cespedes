@@ -97,7 +97,7 @@ document.body.addEventListener('click',e=>{const t=e.target;if(t.dataset.editSto
 document.getElementById('paymentForm').addEventListener('submit',e=>{e.preventDefault();const saleId=document.getElementById('paymentSaleId').value,s=state.sales.find(x=>x.id===saleId),amount=Number(document.getElementById('paymentAmount').value),pending=salePending(s);if(amount<=0||amount>pending)return toast('Monto inválido');state.payments.push({id:uid(),saleId,amount,method:document.getElementById('paymentMethod').value,date:new Date().toISOString()});save();document.getElementById('paymentDialog').close();toast('Abono registrado')});
 document.getElementById('reportPeriod').addEventListener('change',e=>{document.getElementById('customDates').classList.toggle('hidden',e.target.value!=='custom');renderReports()});['reportFrom','reportTo'].forEach(id=>document.getElementById(id).addEventListener('change',renderReports));document.getElementById('exportPdfBtn').onclick=exportPdf;
 document.getElementById('backupBtn').onclick=()=>downloadBlob(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),`respaldo-pollitos-${todayKey()}.json`);document.getElementById('restoreInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.sales)||!Array.isArray(data.products))throw 0;if(confirm('Esto reemplazará los datos actuales. ¿Continuar?')){state={...structuredClone(defaults),...data};state.products=state.products.map(p=>({...p,stock:Number(p.stock||0),costPrice:Number(p.costPrice||0)}));state.stockMovements=state.stockMovements||[];save();toast('Respaldo restaurado')}}catch{toast('Archivo de respaldo inválido')}e.target.value=''});
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;document.getElementById('installBtn').hidden=false});document.getElementById('installBtn').onclick=async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;document.getElementById('installBtn').hidden=true}};if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('sw.js');registration.update()}catch{}});
 // Acceso del propietario con Supabase Auth.
 const SUPABASE_URL='https://eawwbpglridntkorktyu.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_nH2R7mRU4jcl0DJ2GQ4-Zg_bNdo5-iS';
@@ -114,6 +114,7 @@ const authStorage={
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storage:authStorage,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 
 let databaseSaveTimer=null;
+let databaseSaveChain=Promise.resolve();
 let databaseReady=false;
 const dbRow=(row)=>{const x={...row};delete x.user_id;delete x.created_at;delete x.updated_at;return x};
 async function loadDatabaseState(){
@@ -121,7 +122,7 @@ async function loadDatabaseState(){
   if(!user)return false;
   const tables=['products','clients','sales','payments','stock_movements','denominations'];
   const results=await Promise.all(tables.map(table=>supabaseClient.from(table).select('*').eq('user_id',user.id)));
-  const failed=results.find(r=>r.error);if(failed){console.error(failed.error);toast('No se pudo cargar la base de datos');return false}
+  const failed=results.find(r=>r.error);if(failed){toast('No se pudo cargar la base de datos');return false}
   const [products,clients,sales,payments,movements,denominations]=results.map(r=>r.data||[]);
   state={
     products:products.length?products.map(r=>({id:r.id,name:r.name,price:Number(r.price),costPrice:Number(r.cost_price),stock:Number(r.stock)})):structuredClone(defaults.products),
@@ -132,8 +133,7 @@ async function loadDatabaseState(){
     denominations:denominations.length?denominations.sort((a,b)=>Number(a.value)-Number(b.value)).map(r=>({value:Number(r.value),count:Number(r.count)})):structuredClone(defaults.denominations)
   };
   databaseReady=true;renderAll();
-  const isEmpty=!products.length&&!clients.length&&!sales.length&&!payments.length&&!movements.length&&!denominations.length;
-  if(isEmpty)await saveDatabaseState();
+  if(!products.length||!denominations.length)await saveDatabaseState();
   return true
 }
 async function syncTable(table,rows,userId){
@@ -143,18 +143,23 @@ async function syncTable(table,rows,userId){
   if(rows.length){const {error}=await supabaseClient.from(table).upsert(rows,{onConflict:'id'});if(error)throw error}
 }
 async function saveDatabaseState(){
-  if(!databaseReady)return;
-  const {data:{user}}=await supabaseClient.auth.getUser();if(!user)return;const u=user.id;
+  if(!databaseReady)return false;
+  const {data:{user}}=await supabaseClient.auth.getUser();if(!user)return false;const u=user.id;
+  const snapshot=structuredClone(state);
   try{
-    await syncTable('products',state.products.map(p=>({id:String(p.id),user_id:u,name:p.name,price:Number(p.price||0),cost_price:Number(p.costPrice||0),stock:Number(p.stock||0)})),u);
-    await syncTable('clients',state.clients.map(c=>({id:String(c.id),user_id:u,name:c.name,phone:c.phone||'',transport_cost:Number(c.transportCost||0)})),u);
-    await syncTable('sales',state.sales.map(s=>({id:String(s.id),user_id:u,client_id:s.clientId||null,client_snapshot:s.clientSnapshot||'',product_id:String(s.productId),qty:Number(s.qty),price:Number(s.price),transport:Number(s.transport||0),cost_price_snapshot:Number(s.costPriceSnapshot||0),paid:Number(s.paid||0),payment:s.payment||'cash',cash_denominations:s.cashDenominations||{},note:s.note||'',sale_date:s.date})),u);
-    await syncTable('payments',state.payments.map(p=>({id:String(p.id),user_id:u,sale_id:String(p.saleId),amount:Number(p.amount),method:p.method||'cash',payment_date:p.date})),u);
-    await syncTable('stock_movements',state.stockMovements.map(m=>({id:String(m.id),user_id:u,product_id:String(m.productId),qty:Number(m.qty),cost_price:m.costPrice===undefined?null:Number(m.costPrice),total_cost:m.totalCost===undefined?null:Number(m.totalCost),note:m.note||'',movement_date:m.date})),u);
-    const denomRows=state.denominations.map(d=>({id:String(d.value),user_id:u,value:Number(d.value),count:Number(d.count||0)}));await syncTable('denominations',denomRows,u);
-  }catch(error){console.error(error);toast('No se pudieron guardar los cambios en la nube')}
+    await syncTable('products',snapshot.products.map(p=>({id:String(p.id),user_id:u,name:p.name,price:Number(p.price??0),cost_price:Number(p.costPrice??0),stock:Number(p.stock??0)})),u);
+    await syncTable('clients',snapshot.clients.map(c=>({id:String(c.id),user_id:u,name:c.name,phone:c.phone||'',transport_cost:Number(c.transportCost??0)})),u);
+    await syncTable('sales',snapshot.sales.map(s=>({id:String(s.id),user_id:u,client_id:s.clientId||null,client_snapshot:s.clientSnapshot||'',product_id:s.productId?String(s.productId):null,qty:Number(s.qty??0),price:Number(s.price??0),transport:Number(s.transport??0),cost_price_snapshot:Number(s.costPriceSnapshot??0),paid:Number(s.paid??0),payment:s.payment||'cash',cash_denominations:s.cashDenominations||{},note:s.note||'',sale_date:s.date})),u);
+    await syncTable('payments',snapshot.payments.map(p=>({id:String(p.id),user_id:u,sale_id:String(p.saleId),amount:Number(p.amount??0),method:p.method||'cash',payment_date:p.date})),u);
+    await syncTable('stock_movements',snapshot.stockMovements.map(m=>({id:String(m.id),user_id:u,product_id:m.productId?String(m.productId):null,qty:Number(m.qty??0),cost_price:Number(m.costPrice??0),total_cost:Number(m.totalCost??0),note:m.note||'',movement_date:m.date})),u);
+    const denomRows=snapshot.denominations.map(d=>({id:String(d.value),user_id:u,value:Number(d.value),count:Number(d.count??0)}));await syncTable('denominations',denomRows,u);
+    return true
+  }catch{toast('No se pudieron guardar los cambios en la nube');return false}
 }
-function queueDatabaseSave(){clearTimeout(databaseSaveTimer);databaseSaveTimer=setTimeout(saveDatabaseState,250)}
+function queueDatabaseSave(){
+  clearTimeout(databaseSaveTimer);
+  databaseSaveTimer=setTimeout(()=>{databaseSaveChain=databaseSaveChain.then(()=>saveDatabaseState())},250)
+}
 
 function setAuthVisible(show){const screen=document.getElementById('authScreen');document.body.classList.toggle('auth-locked',show);screen?.classList.toggle('is-hidden',!show)}
 function authShake(id,msg){const el=document.getElementById(id),card=document.querySelector('.auth-card');el.textContent=msg;card.classList.remove('auth-shake');void card.offsetWidth;card.classList.add('auth-shake')}
