@@ -24,6 +24,30 @@
       <div class="splash-loader"><i></i><i></i><i></i></div>
     </div>
   </div>
+  <section id="authScreen" class="auth-screen" aria-label="Acceso a Pollitos Bebés Céspedes">
+    <div class="auth-orb auth-orb-one"></div><div class="auth-orb auth-orb-two"></div>
+    <div class="auth-card">
+      <div class="auth-logo"><img src="assets/logo.png" alt="Pollitos Bebés Céspedes" /></div>
+      <div class="auth-heading"><span>ACCESO PRIVADO</span><h1>Bienvenido</h1><p id="authSubtitle">Ingresa para continuar a tu negocio.</p></div>
+      <form id="loginForm" class="auth-form" autocomplete="on">
+        <label>Usuario<div class="auth-input"><span>👤</span><input id="loginUser" type="text" autocomplete="username" placeholder="Tu usuario" required /></div></label>
+        <label>Contraseña<div class="auth-input"><span>🔒</span><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tu contraseña" required /><button type="button" class="password-toggle" data-toggle-password="loginPassword" aria-label="Mostrar contraseña">◉</button></div></label>
+        <div class="auth-options auth-options-stack"><label class="remember"><input id="rememberUser" type="checkbox" /> <span>Recordar mi usuario</span></label><label class="remember"><input id="rememberLogin" type="checkbox" checked /> <span>Mantener sesión iniciada</span></label></div>
+        <p id="loginError" class="auth-error" role="alert"></p>
+        <button class="auth-submit" type="submit">Entrar <span>→</span></button>
+      </form>
+      <form id="setupForm" class="auth-form hidden" autocomplete="off">
+        <div class="setup-note"><strong>Primera configuración</strong><span>Crea el acceso del propietario. Solo tendrás que hacerlo una vez en este dispositivo.</span></div>
+        <label>Nombre<div class="auth-input"><span>👤</span><input id="setupName" type="text" placeholder="Ej. César" required maxlength="50" /></div></label>
+        <label>Usuario<div class="auth-input"><span>＠</span><input id="setupUser" type="text" placeholder="Crea un usuario" required maxlength="40" /></div></label>
+        <label>Contraseña<div class="auth-input"><span>🔒</span><input id="setupPassword" type="password" placeholder="Mínimo 6 caracteres" required minlength="6" /><button type="button" class="password-toggle" data-toggle-password="setupPassword" aria-label="Mostrar contraseña">◉</button></div></label>
+        <label>Confirmar contraseña<div class="auth-input"><span>✓</span><input id="setupPassword2" type="password" placeholder="Repite la contraseña" required minlength="6" /><button type="button" class="password-toggle" data-toggle-password="setupPassword2" aria-label="Mostrar contraseña">◉</button></div></label>
+        <p id="setupError" class="auth-error" role="alert"></p>
+        <button class="auth-submit" type="submit">Crear acceso <span>→</span></button>
+      </form>
+      <div class="auth-footer"><span>🐥</span> Pollitos Bebés Céspedes 069</div>
+    </div>
+  </section>
   <div id="toast" class="toast"></div>
   <header class="topbar">
     <div class="brand"><img src="assets/logo.png" class="brand-logo" alt="Logo"/><div><strong>Pollitos Bebés</strong><span>Céspedes 069</span></div></div>
@@ -128,6 +152,7 @@
       <div class="section-title"><div><span class="eyebrow">Configuración</span><h1>Productos y respaldo</h1></div></div>
       <section class="panel"><div class="panel-head"><div><span class="eyebrow">Pollitos</span><h2>Tipos y precios</h2></div><button class="primary small" id="addProductBtn">+ Tipo</button></div><div id="productsList" class="list-stack compact"></div></section>
       <section class="panel"><span class="eyebrow">Seguridad de datos</span><h2>Respaldo local</h2><p class="muted">Los datos se guardan en este teléfono. Exporta una copia periódicamente.</p><div class="button-stack"><button class="secondary full" id="backupBtn">Exportar respaldo JSON</button><label class="secondary full file-label">Importar respaldo<input id="restoreInput" type="file" accept="application/json" hidden /></label></div></section>
+      <section class="panel"><span class="eyebrow">Acceso</span><h2>Sesión</h2><p class="muted">Cierra el acceso a la aplicación en este dispositivo.</p><button class="secondary full" id="logoutBtn">Cerrar sesión</button></section>
     </section>
   </main>
 
@@ -150,6 +175,7 @@
 
   <dialog id="paymentDialog" class="modal"><form id="paymentForm" method="dialog"><input type="hidden" id="paymentSaleId"/><h2>Registrar abono</h2><p id="paymentPendingLabel" class="muted"></p><label>Monto<input id="paymentAmount" type="number" min="0.01" step="0.01" required/></label><label>Forma<select id="paymentMethod"><option value="cash">Efectivo</option><option value="transfer">Transferencia</option><option value="other">Otro</option></select></label><div class="modal-actions"><button type="button" class="secondary" data-close="paymentDialog">Cancelar</button><button class="primary" type="submit">Guardar abono</button></div></form></dialog>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="app.js"></script>
